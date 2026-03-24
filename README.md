@@ -83,10 +83,15 @@ VoltNavigator addresses the problem by providing a simple and interactive platfo
 
 ---
 
+🌐 Open Charge Map API — Complete Reference
+VoltNavigator is powered by the Open Charge Map API — the world's largest open-source, publicly accessible registry of EV charging locations globally.
+
+---
+
 ## 💡 Conclusion
 
 **VoltNavigator** demonstrates the practical application of JavaScript concepts such as API integration, asynchronous programming, and array higher-order functions. It provides a real-world solution to a growing problem while ensuring a **user-friendly** and **responsive** design.
 
 ---
 
-> 📌 *Built with JavaScript · Powered by Open Charge Map API*
+>📌 Built with ❤️ · Powered by Open Charge Map API
