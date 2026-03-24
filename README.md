@@ -1,4 +1,4 @@
-📌 VoltNavigator – EV Charging Station Finder
+**📌 VoltNavigator – EV Charging Station Finder**
 🔰 Description
 
 VoltNavigator is a web-based application that helps users locate nearby electric vehicle (EV) charging stations using real-time data from the Open Charge Map API. The application provides an intuitive interface to search, filter, and sort charging stations based on user preferences. It is designed to simplify the process of finding reliable charging infrastructure and improve accessibility for EV users.
