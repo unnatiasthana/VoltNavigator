@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoltNavigator — Find Stations ⚡</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,400&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  
+  <link rel="stylesheet" href="voltnav.css" />
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+
+  
+  <div class="animated-background" aria-hidden="true">
+    <div class="background-mesh"></div>
+    <div class="glow-orb glow-orb--a"></div>
+    <div class="glow-orb glow-orb--b"></div>
+    <div class="glow-orb glow-orb--c"></div>
+    <div class="background-dots"></div>
+  </div>
+
+  
+  <header class="top-navigation" role="banner">
+    <a href="voltnav.html" class="site-logo" aria-label="VoltNavigator home">
+      <div class="lightning-badge small" aria-hidden="true">⚡</div>
+      <span class="brand-name">VoltNavigator</span>
+    </a>
+
+    <nav class="nav-menu" aria-label="Main navigation">
+      <a href="dashboard.html" class="nav-item active">Find Stations</a>
+      <a href="#"              class="nav-item">My Routes</a>
+      <a href="#"              class="nav-item">Saved</a>
+    </nav>
+
+    <div class="nav-actions">
+      <button class="account-button" aria-label="Your account">
+        <span>😊</span>
+      </button>
+    </div>
+  </header>
+
+  
+  <main class="page-content" id="main">
+
+    <!-- Hero search bar -->
+    <section class="search-hero" aria-label="Search for charging stations">
+      <h1 class="search-heading">
+        Find a charger <em>near you</em>
+      </h1>
+      <p class="search-description">Live data from 50,000+ stations across 180 cities</p>
+
+      <div class="search-bar" role="search">
+        <span class="search-location-icon" aria-hidden="true">📍</span>
+        <input
+          type="text"
+          id="city-search-input"
+          class="city-search-field"
+          placeholder="Enter a city name to find nearby chargers…"
+          autocomplete="off"
+          aria-label="City name"
+        />
+        <button class="search-button" id="search-button" aria-label="Search">
+          Search ⚡
+        </button>
+      </div>
+
+    </section>
+
+    <!-- Stats bar — live summary from API response -->
+    <section class="results-summary-bar" id="results-summary" aria-live="polite" hidden>
+      <div class="summary-stat">
+        <span class="summary-stat-number" id="summary-total-count">—</span>
+        <span class="summary-stat-label">Stations found</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-number" id="summary-fast-count">—</span>
+        <span class="summary-stat-label">Fast chargers</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-number" id="summary-free-count">—</span>
+        <span class="summary-stat-label">Free to use</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-number" id="summary-city-name">—</span>
+        <span class="summary-stat-label">City</span>
+      </div>
+    </section>
+
+    <!-- Filter row -->
+    <section class="filter-options-row" id="filter-options" hidden aria-label="Filter results">
+      <span class="filter-heading">Filter:</span>
+      <button class="filter-button active" data-filter="all">All</button>
+      <button class="filter-button" data-filter="fast">⚡ Fast charge</button>
+      <button class="filter-button" data-filter="free">🆓 Free</button>
+      <button class="filter-button" data-filter="open">🟢 Open now</button>
+    </section>
+
+    <!-- ── LOADING STATE ── -->
+    <section class="loading-cards-grid" id="loading-cards" hidden aria-label="Loading stations" aria-busy="true">
+      <!-- 8 skeleton cards rendered by JS -->
+    </section>
+
+    <!-- ── ERROR STATE ── -->
+    <div class="error-section" id="error-message" hidden role="alert">
+      <div class="error-state-icon">😬</div>
+      <h2 class="error-state-title">Something went wrong</h2>
+      <p  class="error-state-message"  id="error-description">We couldn't fetch stations right now.</p>
+      <button class="try-again-button" id="try-again-button">Try again</button>
+    </div>
+
+    <!-- ── EMPTY STATE ── -->
+    <div class="no-results-section" id="no-results-message" hidden>
+      <div class="empty-state-icon">🔍</div>
+      <h2 class="empty-state-title">No stations found</h2>
+      <p  class="empty-state-message">Try a different city or remove some filters.</p>
+    </div>
+
+    <!-- ── RESULTS GRID ── -->
+    <section
+      class="station-results-grid"
+      id="station-results"
+      aria-label="Charging stations"
+      aria-live="polite"
+    >
+      <!-- Cards injected by dashboard.js -->
+    </section>
+
+    <!-- Load more -->
+    <div class="load-more-section" id="load-more-section" hidden>
+      <button class="load-more-button" id="load-more-button">Load more stations</button>
+    </div>
+
+  </main>
+
+  <!-- ── Shared footer ── -->
+  <footer class="page-footer">
+    <span>© 2026 VoltNavigator</span>
+    <span class="dot">·</span>
+    <span>Data by <a href="https://openchargemap.org" target="_blank" rel="noopener">Open Charge Map</a></span>
+    <span class="dot">·</span>
+    <a href="voltnav.html">Sign in</a>
+    <span class="dot">·</span>
+    <a href="#">Privacy</a>
+  </footer>
+
+  <!-- Shared toast -->
+  <div class="toast" id="notification-toast" role="alert" aria-live="assertive"></div>
+
+  <!-- Shared JS (toast helper etc.) — loaded in non-dashboard mode guard -->
+  <script src="voltnav.js" defer></script>
+  <!-- Dashboard-specific JS -->
+  <script src="dashboard.js" defer></script>
+</body>
+</html>
