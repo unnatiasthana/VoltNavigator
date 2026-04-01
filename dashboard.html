@@ -47,7 +47,7 @@
   
   <main class="page-content" id="main">
 
-    <!-- Hero search bar -->
+ 
     <section class="search-hero" aria-label="Search for charging stations">
       <h1 class="search-heading">
         Find a charger <em>near you</em>
@@ -71,7 +71,7 @@
 
     </section>
 
-    <!-- Stats bar — live summary from API response -->
+   
     <section class="results-summary-bar" id="results-summary" aria-live="polite" hidden>
       <div class="summary-stat">
         <span class="summary-stat-number" id="summary-total-count">—</span>
@@ -91,7 +91,7 @@
       </div>
     </section>
 
-    <!-- Filter row -->
+    
     <section class="filter-options-row" id="filter-options" hidden aria-label="Filter results">
       <span class="filter-heading">Filter:</span>
       <button class="filter-button active" data-filter="all">All</button>
@@ -100,12 +100,12 @@
       <button class="filter-button" data-filter="open">🟢 Open now</button>
     </section>
 
-    <!-- ── LOADING STATE ── -->
+    
     <section class="loading-cards-grid" id="loading-cards" hidden aria-label="Loading stations" aria-busy="true">
-      <!-- 8 skeleton cards rendered by JS -->
+      
     </section>
 
-    <!-- ── ERROR STATE ── -->
+    
     <div class="error-section" id="error-message" hidden role="alert">
       <div class="error-state-icon">😬</div>
       <h2 class="error-state-title">Something went wrong</h2>
@@ -113,31 +113,31 @@
       <button class="try-again-button" id="try-again-button">Try again</button>
     </div>
 
-    <!-- ── EMPTY STATE ── -->
+    
     <div class="no-results-section" id="no-results-message" hidden>
       <div class="empty-state-icon">🔍</div>
       <h2 class="empty-state-title">No stations found</h2>
       <p  class="empty-state-message">Try a different city or remove some filters.</p>
     </div>
 
-    <!-- ── RESULTS GRID ── -->
+    
     <section
       class="station-results-grid"
       id="station-results"
       aria-label="Charging stations"
       aria-live="polite"
     >
-      <!-- Cards injected by dashboard.js -->
+     
     </section>
 
-    <!-- Load more -->
+    
     <div class="load-more-section" id="load-more-section" hidden>
       <button class="load-more-button" id="load-more-button">Load more stations</button>
     </div>
 
   </main>
 
-  <!-- ── Shared footer ── -->
+  
   <footer class="page-footer">
     <span>© 2026 VoltNavigator</span>
     <span class="dot">·</span>
@@ -148,12 +148,12 @@
     <a href="#">Privacy</a>
   </footer>
 
-  <!-- Shared toast -->
+  
   <div class="toast" id="notification-toast" role="alert" aria-live="assertive"></div>
 
-  <!-- Shared JS (toast helper etc.) — loaded in non-dashboard mode guard -->
+  
   <script src="voltnav.js" defer></script>
-  <!-- Dashboard-specific JS -->
+  
   <script src="dashboard.js" defer></script>
 </body>
 </html>
