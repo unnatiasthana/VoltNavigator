@@ -1,18 +1,4 @@
-/* ================================================
-   dashboard.css
-   VoltNavigator — Dashboard / Station Finder Page
-   ------------------------------------------------
-   Depends on voltnav.css being loaded first
-   (uses the same CSS variables / tokens).
 
-   Load order in HTML:
-     <link rel="stylesheet" href="voltnav.css" />
-     <link rel="stylesheet" href="dashboard.css" />
-================================================ */
-
-/* ─────────────────────────────────────────────
-   TOP NAV
-───────────────────────────────────────────── */
 .top-navigation {
   position: sticky;
   top: 0;
@@ -184,10 +170,6 @@
 .search-button:active { transform: scale(0.98); }
 
 
-
-/* ─────────────────────────────────────────────
-   SUMMARY BAR
-───────────────────────────────────────────── */
 .results-summary-bar {
   display: flex;
   flex-wrap: wrap;
@@ -226,9 +208,7 @@
   letter-spacing: 0.06em;
 }
 
-/* ─────────────────────────────────────────────
-   FILTER ROW
-───────────────────────────────────────────── */
+
 .filter-options-row {
   display: flex;
   align-items: center;
@@ -263,9 +243,7 @@
 .filter-button:hover  { background: rgba(0,192,90,0.08); border-color: rgba(0,192,90,0.2); color: var(--ink); }
 .filter-button.active { background: rgba(0,192,90,0.14); border-color: var(--g1); color: var(--g1); font-weight: 700; }
 
-/* ─────────────────────────────────────────────
-   SKELETON LOADING GRID
-───────────────────────────────────────────── */
+
 .loading-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
@@ -302,9 +280,7 @@
 .loading-card-line.short { width: 55%; }
 .loading-card-badge  { height: 26px; width: 80px; border-radius: 999px; margin-top: 14px; display: inline-block; }
 
-/* ─────────────────────────────────────────────
-   STATION CARDS GRID
-───────────────────────────────────────────── */
+
 .station-results-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
@@ -346,7 +322,7 @@
 .charging-station-card:hover { transform: translateY(-3px); border-color: rgba(0,192,90,0.3); box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,192,90,0.08); }
 .charging-station-card:hover::before { opacity: 1; }
 
-/* Status dot */
+
 .station-status-row {
   display: flex;
   align-items: center;
@@ -417,7 +393,7 @@
   overflow: hidden;
 }
 
-/* Connector badges */
+
 .station-connector-types {
   display: flex;
   flex-wrap: wrap;
@@ -480,9 +456,7 @@
 }
 .get-directions-button:hover { background: rgba(0,192,90,0.18); border-color: var(--g1); transform: translateY(-1px); }
 
-/* ─────────────────────────────────────────────
-   EMPTY / ERROR STATES
-───────────────────────────────────────────── */
+
 .error-section,
 .no-results-section {
   text-align: center;
@@ -529,9 +503,7 @@
 .try-again-button:hover  { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,160,70,0.4); }
 .try-again-button:active { transform: scale(0.98); }
 
-/* ─────────────────────────────────────────────
-   LOAD MORE
-───────────────────────────────────────────── */
+
 .load-more-section {
   text-align: center;
   padding: 32px 0 8px;
@@ -554,9 +526,7 @@
 .load-more-button:active { transform: scale(0.98); }
 .load-more-button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-/* ─────────────────────────────────────────────
-   FOOTER (dashboard variant)
-───────────────────────────────────────────── */
+
 .page-footer {
   position: relative;
   z-index: 1;
@@ -574,11 +544,7 @@
 .page-footer a:hover { color: var(--g1); }
 .page-footer .dot { opacity: 0.3; }
 
-/* ─────────────────────────────────────────────
-   RESPONSIVE
-───────────────────────────────────────────── */
 
-/* Tablet */
 @media (max-width: 860px) {
   .nav-menu   { display: none; }          /* collapse nav on tablet — hamburger out of scope */
   .top-navigation      { padding: 0 20px; }
@@ -591,7 +557,7 @@
   .loading-cards-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
 }
 
-/* Mobile */
+
 @media (max-width: 600px) {
   .top-navigation        { height: 54px; }
   .lightning-badge.small { width: 30px; height: 30px; font-size: 0.85rem; }
@@ -621,13 +587,12 @@
   .load-more-button  { width: 100%; }
 }
 
-/* Small mobile */
+
 @media (max-width: 380px) {
   .page-content  { padding: 18px 12px 36px; }
   .search-button { padding: 9px 13px; font-size: 0.78rem; }
 }
 
-/* Touch — remove sticky hovers */
 @media (hover: none) {
   .charging-station-card:hover { transform: none; }
 
