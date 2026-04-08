@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoltNavigator — Favorites & History ❤️</title>
+  <meta name="description" content="View your saved charging stations and recent search history on VoltNavigator." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="voltnav.css" />
+  <link rel="stylesheet" href="dashboard.css" />
+  <link rel="stylesheet" href="favorites.css" />
+</head>
+<body>
+
+  <div class="animated-background" aria-hidden="true">
+    <div class="background-mesh"></div>
+    <div class="glow-orb glow-orb--a"></div>
+    <div class="glow-orb glow-orb--b"></div>
+    <div class="glow-orb glow-orb--c"></div>
+    <div class="background-dots"></div>
+  </div>
+
+  <!-- TOP NAV -->
+  <header class="top-navigation" role="banner">
+    <a href="voltnav.html" class="site-logo" aria-label="VoltNavigator home">
+      <span class="brand-name">VoltNavigator</span>
+    </a>
+
+    <nav class="nav-menu" aria-label="Main navigation">
+      <a href="dashboard.html" class="nav-item" id="nav-find-stations">Find Stations</a>
+      <a href="favorites.html" class="nav-item active" id="nav-favorites">Favorites</a>
+    </nav>
+
+    <div class="nav-actions">
+      <button class="theme-toggle-button" id="theme-toggle" aria-label="Toggle dark/light mode" title="Toggle theme">
+        <span class="theme-icon" id="theme-icon">🌙</span>
+      </button>
+      <a href="voltnav.html" class="account-button" aria-label="Sign in" id="nav-signin">
+        <span style="font-family: var(--serif);
+  font-weight: 700;
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  color: var(--g3);
+  line-height: 1.1;">A</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="page-content" id="main">
+
+    <!-- Page header -->
+    <section class="fav-hero" aria-label="Favorites and history">
+      <h1 class="fav-heading">Your <em>favorites</em> & history</h1>
+      <p class="fav-description">Stations you've saved and cities you've searched — all in one place.</p>
+
+      <!-- Tab switcher -->
+      <div class="fav-tab-bar" role="tablist">
+        <button class="fav-tab active" id="tab-favorites" role="tab" aria-selected="true" aria-controls="favorites-panel" data-tab="favorites">
+          ❤️ Favorites <span class="fav-tab-count" id="favorites-tab-count">0</span>
+        </button>
+        <button class="fav-tab" id="tab-history" role="tab" aria-selected="false" aria-controls="history-panel" data-tab="history">
+          🕐 History <span class="fav-tab-count" id="history-tab-count">0</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ── FAVORITES PANEL ── -->
+    <section id="favorites-panel" role="tabpanel" aria-labelledby="tab-favorites">
+
+      <!-- Search + Sort -->
+      <div class="fav-toolbar" id="fav-toolbar">
+        <div class="fav-search-bar">
+          <span class="fav-search-icon" aria-hidden="true">🔎</span>
+          <input
+            type="text"
+            id="fav-search-input"
+            class="fav-search-field"
+            placeholder="Search your favorites…"
+            autocomplete="off"
+            aria-label="Search favorites"
+          />
+          <button class="fav-search-clear" id="fav-search-clear" aria-label="Clear search" hidden>✕</button>
+        </div>
+
+        <div class="fav-filter-row">
+          <button class="filter-button active" data-fav-filter="all" id="fav-filter-all">All</button>
+          <button class="filter-button" data-fav-filter="fast" id="fav-filter-fast">⚡ Fast</button>
+          <button class="filter-button" data-fav-filter="free" id="fav-filter-free">🆓 Free</button>
+          
+        </div>
+
+        <div class="fav-sort-controls">
+          <label for="fav-sort-select" class="sort-label">Sort:</label>
+          <select id="fav-sort-select" class="sort-select">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="name-asc">Name A → Z</option>
+            <option value="name-desc">Name Z → A</option>
+            <option value="power-desc">Power ↓</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Favorites summary stats -->
+      <div class="fav-stats-row" id="fav-stats-row">
+        <div class="fav-stat">
+          <span class="fav-stat-number" id="fav-count-total">0</span>
+          <span class="fav-stat-label">Total saved</span>
+        </div>
+        <div class="fav-stat">
+          <span class="fav-stat-number" id="fav-count-fast">0</span>
+          <span class="fav-stat-label">Fast chargers</span>
+        </div>
+        <div class="fav-stat">
+          <span class="fav-stat-number" id="fav-count-free">0</span>
+          <span class="fav-stat-label">Free stations</span>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div class="fav-empty" id="fav-empty" hidden>
+        <div class="fav-empty-icon">💚</div>
+        <h2 class="fav-empty-title">No favorites yet</h2>
+        <p class="fav-empty-message">Find a station on the <a href="dashboard.html">dashboard</a> and tap ❤️ to save it here.</p>
+      </div>
+
+      <!-- Favorites grid -->
+      <div class="station-results-grid" id="fav-grid" aria-label="Favorite stations"></div>
+
+      <!-- Clear all -->
+      <div class="fav-actions-row" id="fav-actions-row" hidden>
+        <button class="fav-clear-all-btn" id="fav-clear-all" aria-label="Remove all favorites">
+          🗑️ Clear all favorites
+        </button>
+      </div>
+    </section>
+
+    <!-- ── HISTORY PANEL ── -->
+    <section id="history-panel" role="tabpanel" aria-labelledby="tab-history" hidden>
+
+      <div class="history-empty" id="history-empty" hidden>
+        <div class="fav-empty-icon">🔍</div>
+        <h2 class="fav-empty-title">No search history yet</h2>
+        <p class="fav-empty-message">Search for a city on the <a href="dashboard.html">dashboard</a> and it will appear here.</p>
+      </div>
+
+      <div class="history-list" id="history-list" aria-label="Search history"></div>
+
+      <div class="fav-actions-row" id="history-actions-row" hidden>
+        <button class="fav-clear-all-btn" id="history-clear-all" aria-label="Clear all history">
+          🗑️ Clear all history
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="page-footer">
+    <span>© 2026 VoltNavigator</span>
+    <span class="dot">·</span>
+    <a href="dashboard.html">Find Stations</a>
+    <span class="dot">·</span>
+    <a href="voltnav.html">Sign in</a>
+    <span class="dot">·</span>
+    <a href="#">Privacy</a>
+  </footer>
+
+  <div class="toast" id="notification-toast" role="alert" aria-live="assertive"></div>
+
+  <script src="voltnav.js" defer></script>
+  <script src="favorites.js" defer></script>
+</body>
+</html>

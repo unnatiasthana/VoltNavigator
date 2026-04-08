@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoltNavigator — Find Stations ⚡</title>
+  <meta name="description" content="Find EV charging stations near you. Live data from 50,000+ stations across 180 cities. Search, filter, sort and save your favourites." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="voltnav.css" />
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+
+  <div class="animated-background" aria-hidden="true">
+    <div class="background-mesh"></div>
+    <div class="glow-orb glow-orb--a"></div>
+    <div class="glow-orb glow-orb--b"></div>
+    <div class="glow-orb glow-orb--c"></div>
+    <div class="background-dots"></div>
+  </div>
+
+  <header class="top-navigation" role="banner">
+    <a href="voltnav.html" class="site-logo" aria-label="VoltNavigator home">
+      
+      <span class="brand-name">VoltNavigator</span>
+    </a>
+
+    <nav class="nav-menu" aria-label="Main navigation">
+      <a href="dashboard.html" class="nav-item active" id="nav-find-stations">Find Stations</a>
+      <a href="favorites.html" class="nav-item" id="nav-favorites">Favorites</a>
+    </nav>
+
+    <div class="nav-actions">
+      <button class="theme-toggle-button" id="theme-toggle" aria-label="Toggle dark/light mode" title="Toggle theme">
+        <span class="theme-icon" id="theme-icon">🌙</span>
+      </button>
+      <a href="voltnav.html" class="account-button" aria-label="Sign in" id="nav-signin">
+        <span>👤</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="page-content" id="main">
+
+    <section class="search-hero" aria-label="Search for charging stations">
+      <h1 class="search-heading">
+        Find a charger <em>near you</em>
+      </h1>
+      <p class="search-description">Live data from 50,000+ stations across 180 cities</p>
+
+      <div class="search-bar" role="search">
+        <span class="search-location-icon" aria-hidden="true"></span>
+        <input
+          type="text"
+          id="city-search-input"
+          class="city-search-field"
+          placeholder="Enter a city name to find nearby chargers…"
+          autocomplete="off"
+          aria-label="City name"
+        />
+        <button class="search-button" id="search-button" aria-label="Search">
+          Search
+        </button>
+      </div>
+
+      <div class="keyword-search-bar" id="keyword-search-bar" hidden>
+        <span class="keyword-search-icon" aria-hidden="true">🔎</span>
+        <input
+          type="text"
+          id="keyword-search-input"
+          class="keyword-search-field"
+          placeholder="Filter results by station name, network, address…"
+          autocomplete="off"
+          aria-label="Filter within results"
+        />
+        <button class="keyword-clear-button" id="keyword-clear-button" aria-label="Clear filter" hidden>✕</button>
+      </div>
+    </section>
+
+    <section class="results-summary-bar" id="results-summary" aria-live="polite" hidden>
+      <div class="summary-stat">
+        <span class="summary-stat-number" id="summary-total-count">—</span>
+        <span class="summary-stat-label">Stations found</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-number" id="summary-fast-count">—</span>
+        <span class="summary-stat-label">Fast chargers</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-number" id="summary-free-count">—</span>
+        <span class="summary-stat-label">Free to use</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-number" id="summary-city-name">—</span>
+        <span class="summary-stat-label">City</span>
+      </div>
+    </section>
+
+    <section class="filter-sort-row" id="filter-sort-row" hidden aria-label="Filter and sort results">
+      <div class="filter-options-row" id="filter-options">
+        <span class="filter-heading">Filter:</span>
+        <button class="filter-button active" data-filter="all" id="filter-all">All</button>
+        <button class="filter-button" data-filter="fast" id="filter-fast">⚡ Fast charge</button>
+        <button class="filter-button" data-filter="free" id="filter-free">🆓 Free</button>
+
+        <button class="filter-button" data-filter="favorited" id="filter-favorites">❤️ Favorites</button>
+      </div>
+      <div class="sort-controls">
+        <label for="sort-select" class="sort-label">Sort:</label>
+        <select id="sort-select" class="sort-select">
+          <option value="default">Default</option>
+          <option value="name-asc">Name A → Z</option>
+          <option value="name-desc">Name Z → A</option>
+          <option value="power-desc">Power ↓</option>
+          <option value="power-asc">Power ↑</option>
+          <option value="points-desc">Points ↓</option>
+          <option value="points-asc">Points ↑</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="loading-cards-grid" id="loading-cards" hidden aria-label="Loading stations" aria-busy="true"></section>
+
+    <div class="error-section" id="error-message" hidden role="alert">
+      <div class="error-state-icon">😬</div>
+      <h2 class="error-state-title">Something went wrong</h2>
+      <p  class="error-state-message" id="error-description">We couldn't fetch stations right now.</p>
+      <button class="try-again-button" id="try-again-button">Try again</button>
+    </div>
+
+    <div class="no-results-section" id="no-results-message" hidden>
+      <div class="empty-state-icon">🔍</div>
+      <h2 class="empty-state-title">No stations found</h2>
+      <p  class="empty-state-message">Try a different city or remove some filters.</p>
+    </div>
+
+    <section class="station-results-grid" id="station-results" aria-label="Charging stations" aria-live="polite"></section>
+
+    <div class="load-more-section" id="load-more-section" hidden>
+      <button class="load-more-button" id="load-more-button">Load more stations</button>
+    </div>
+
+  </main>
+
+  <footer class="page-footer">
+    <span>© 2026 VoltNavigator</span>
+    <span class="dot">·</span>
+    <span>Data by <a href="https://openchargemap.org" target="_blank" rel="noopener">Open Charge Map</a></span>
+    <span class="dot">·</span>
+    <a href="voltnav.html">Sign in</a>
+    <span class="dot">·</span>
+    <a href="favorites.html">Favorites</a>
+  </footer>
+
+  <div class="toast" id="notification-toast" role="alert" aria-live="assertive"></div>
+
+  <script src="voltnav.js" defer></script>
+  <script src="dashboard.js" defer></script>
+</body>
+</html>
