@@ -3,9 +3,177 @@
    VoltNavigator — Favorites & History Page
    ------------------------------------------------
    Inherits from voltnav.css + dashboard.css
-   (top-nav, cards, badges, filters, theme toggle,
-    light-mode overrides are all in dashboard.css)
 ================================================ */
+
+/* ── Design System Variable Mapping ── */
+:root {
+  --serif: 'Instrument Serif', serif;
+  --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --ink: var(--text);
+  --ink-soft: var(--text-secondary);
+  --ink-dim: rgba(17, 17, 17, 0.38);
+  --ease: 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  --g1: var(--primary-green);
+  --g3: var(--dark-sage);
+}
+
+[data-theme="dark"] {
+  --ink-dim: rgba(232, 237, 232, 0.32);
+  --g3: var(--dark-green);
+}
+
+/* ── Reset Body for normal scrolling ── */
+body {
+  overflow-y: auto !important;
+  height: auto !important;
+  min-height: 100vh;
+}
+
+/* ── Container Layout ── */
+.fav-page-container {
+  max-width: 900px;
+  margin: 64px auto 0; /* space for fixed header */
+  padding: 48px 24px 60px;
+  min-height: calc(100vh - 220px);
+}
+
+/* ── Premium Navigation Header ── */
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  background: rgba(238, 241, 236, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  transition: background var(--ease), border-color var(--ease);
+}
+
+[data-theme="dark"] .app-header {
+  background: rgba(13, 19, 15, 0.85);
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.header-inner {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--text);
+  text-decoration: none !important;
+}
+
+.brand-pip {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary-green);
+  box-shadow: 0 0 8px rgba(0, 230, 115, 0.7);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.nav-link {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: color var(--ease);
+  position: relative;
+  padding: 4px 0;
+}
+
+.nav-link:hover {
+  color: var(--text);
+  text-decoration: none !important;
+}
+
+.nav-link.active {
+  color: var(--primary-green);
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--primary-green);
+  border-radius: 2px;
+}
+
+.header-theme-toggle {
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--text);
+  transition: all var(--ease);
+}
+
+.header-theme-toggle:hover {
+  background: rgba(0, 0, 0, 0.08);
+  transform: scale(1.05);
+}
+
+[data-theme="dark"] .header-theme-toggle {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .header-theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ── Premium Footer ── */
+.app-footer {
+  text-align: center;
+  padding: 32px 24px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.01);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background var(--ease), border-color var(--ease);
+}
+
+[data-theme="dark"] .app-footer {
+  border-top-color: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.footer-sub {
+  font-size: 0.72rem;
+  opacity: 0.6;
+}
 
 /* ─────────────────────────────────────────────
    PAGE HERO
