@@ -1,205 +1,439 @@
-// Simple JavaScript for Favorites - Class 12th Student 
+// VoltNavigator — Favorites & History Page Logic
 
-// Get the main HTML grid
-var favGrid = document.getElementById("fav-grid");
-var emptyMsg = document.getElementById("fav-empty");
-
-// Array to store favorite stations
+// State Variables
 var savedFavorites = [];
+var searchHistory = [];
+var currentFilterType = "all"; // "all", "fast", "free"
+var currentSearchQuery = "";
+var currentSortValue = "name-asc"; // "name-asc", "name-desc", "power-desc"
 
-// Main function to load and display favorites
-function loadFavorites() {
-    // Read from local storage
-    var storageString = localStorage.getItem("my_simple_favorites");
-    
-    // Check if there is data
-    if (storageString == null || storageString == "[]") {
-        emptyMsg.hidden = false;
+// HTML Elements
+var favGrid = document.getElementById("fav-grid");
+var emptyFavsMsg = document.getElementById("fav-empty");
+var emptyHistoryMsg = document.getElementById("history-empty");
+var favoritesPanel = document.getElementById("favorites-panel");
+var historyPanel = document.getElementById("history-panel");
+var historyList = document.getElementById("history-list");
+
+var tabFavorites = document.getElementById("tab-favorites");
+var tabHistory = document.getElementById("tab-history");
+var favTabCount = document.getElementById("fav-tab-count");
+var historyTabCount = document.getElementById("history-tab-count");
+
+var favSearchInput = document.getElementById("fav-search-input");
+var favSearchClear = document.getElementById("fav-search-clear");
+var favSortSelect = document.getElementById("fav-sort-select");
+
+var favCountTotal = document.getElementById("fav-count-total");
+var favCountFast = document.getElementById("fav-count-fast");
+var favCountFree = document.getElementById("fav-count-free");
+
+var clearFavsBtn = document.getElementById("fav-clear-all");
+var clearHistoryBtn = document.getElementById("history-clear-all");
+
+var favActionsRow = document.getElementById("fav-actions-row");
+var historyActionsRow = document.getElementById("history-actions-row");
+
+// Toast Notification
+function showToast(message) {
+    var toast = document.getElementById("notification-toast");
+    if (toast) {
+        toast.innerText = message;
+        toast.classList.add("show");
+        setTimeout(function() {
+            toast.classList.remove("show");
+        }, 3000);
+    } else {
+        alert(message);
+    }
+}
+
+// Escape HTML Helper
+function escapeHtml(text) {
+    if (!text) return "";
+    return text
+        .toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// Relative Time Helper
+function formatRelativeTime(timestamp) {
+    var diff = Date.now() - timestamp;
+    var secs = Math.floor(diff / 1000);
+    if (secs < 60) return "Just now";
+    var mins = Math.floor(secs / 60);
+    if (mins < 60) return mins + "m ago";
+    var hours = Math.floor(mins / 60);
+    if (hours < 24) return hours + "h ago";
+    var days = Math.floor(hours / 24);
+    return days === 1 ? "Yesterday" : days + " days ago";
+}
+
+// ─── Theme Persistence ───
+function initTheme() {
+    var savedTheme = localStorage.getItem("volt_theme") || "light";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+    updateThemeIcon(savedTheme);
+
+    var themeBtn = document.getElementById("theme-toggle");
+    if (themeBtn) {
+        themeBtn.addEventListener("click", function() {
+            var currentTheme = document.documentElement.getAttribute("data-theme");
+            var newTheme = currentTheme === "light" ? "dark" : "light";
+            document.documentElement.setAttribute("data-theme", newTheme);
+            localStorage.setItem("volt_theme", newTheme);
+            updateThemeIcon(newTheme);
+        });
+    }
+}
+
+function updateThemeIcon(theme) {
+    var themeIcon = document.getElementById("theme-icon");
+    if (themeIcon) {
+        themeIcon.innerText = theme === "light" ? "☀️" : "🌙";
+    }
+}
+
+// ─── Tab Switching ───
+function initTabs() {
+    if (tabFavorites && tabHistory) {
+        tabFavorites.addEventListener("click", function() {
+            tabFavorites.classList.add("active");
+            tabHistory.classList.remove("active");
+            favoritesPanel.hidden = false;
+            historyPanel.hidden = true;
+            renderFavorites();
+        });
+
+        tabHistory.addEventListener("click", function() {
+            tabHistory.classList.add("active");
+            tabFavorites.classList.remove("active");
+            favoritesPanel.hidden = true;
+            historyPanel.hidden = false;
+            renderHistory();
+        });
+    }
+}
+
+// ─── Loading Data ───
+function loadData() {
+    // Load Favorites
+    var favsString = localStorage.getItem("my_simple_favorites");
+    try {
+        savedFavorites = favsString ? JSON.parse(favsString) : [];
+    } catch (e) {
+        savedFavorites = [];
+    }
+    if (favTabCount) favTabCount.innerText = savedFavorites.length;
+
+    // Load History
+    var historyString = localStorage.getItem("volt_search_history");
+    try {
+        searchHistory = historyString ? JSON.parse(historyString) : [];
+    } catch (e) {
+        searchHistory = [];
+    }
+    if (historyTabCount) historyTabCount.innerText = searchHistory.length;
+}
+
+// ─── Render Favorites ───
+function renderFavorites() {
+    if (!favGrid) return;
+    favGrid.innerHTML = "";
+
+    // Calculate Summary Stats from ALL saved favorites
+    var totalCount = savedFavorites.length;
+    var fastCount = 0;
+    var freeCount = 0;
+
+    for (var i = 0; i < savedFavorites.length; i++) {
+        var s = savedFavorites[i];
+        
+        // Fast Check
+        var isFast = false;
+        if (s.Connections) {
+            for (var c = 0; c < s.Connections.length; c++) {
+                if (s.Connections[c].PowerKW >= 20) isFast = true;
+            }
+        }
+        if (isFast) fastCount++;
+
+        // Free Check
+        var isFree = false;
+        if (s.UsageType && s.UsageType.IsPayAtLocation === false && s.UsageType.IsMembershipRequired === false) {
+            isFree = true;
+        }
+        if (isFree) freeCount++;
+    }
+
+    if (favCountTotal) favCountTotal.innerText = totalCount;
+    if (favCountFast) favCountFast.innerText = fastCount;
+    if (favCountFree) favCountFree.innerText = freeCount;
+
+    // Apply Filters & Search in-memory
+    var filtered = savedFavorites.filter(function(station) {
+        // 1. Search Query Filter
+        var title = (station.AddressInfo && station.AddressInfo.Title) ? station.AddressInfo.Title : "Unnamed Station";
+        var address = (station.AddressInfo && station.AddressInfo.AddressLine1) ? station.AddressInfo.AddressLine1 : "No Address";
+        var matchesSearch = title.toLowerCase().indexOf(currentSearchQuery.toLowerCase()) !== -1 ||
+                            address.toLowerCase().indexOf(currentSearchQuery.toLowerCase()) !== -1;
+
+        if (!matchesSearch) return false;
+
+        // 2. Badge Filter
+        if (currentFilterType === "fast") {
+            var isFst = false;
+            if (station.Connections) {
+                for (var c = 0; c < station.Connections.length; c++) {
+                    if (station.Connections[c].PowerKW >= 20) isFst = true;
+                }
+            }
+            return isFst;
+        } else if (currentFilterType === "free") {
+            return station.UsageType && station.UsageType.IsPayAtLocation === false && station.UsageType.IsMembershipRequired === false;
+        }
+
+        return true;
+    });
+
+    // Apply Sorting
+    filtered.sort(function(a, b) {
+        var titleA = (a.AddressInfo && a.AddressInfo.Title) ? a.AddressInfo.Title : "Untitled";
+        var titleB = (b.AddressInfo && b.AddressInfo.Title) ? b.AddressInfo.Title : "Untitled";
+
+        if (currentSortValue === "name-asc") {
+            return titleA.localeCompare(titleB);
+        } else if (currentSortValue === "name-desc") {
+            return titleB.localeCompare(titleA);
+        } else if (currentSortValue === "power-desc") {
+            var getMaxPower = function(s) {
+                var maxP = 0;
+                if (s.Connections) {
+                    for (var j = 0; j < s.Connections.length; j++) {
+                        var p = s.Connections[j].PowerKW || 0;
+                        if (p > maxP) maxP = p;
+                    }
+                }
+                return maxP;
+            };
+            return getMaxPower(b) - getMaxPower(a);
+        }
+        return 0;
+    });
+
+    // Check if empty
+    if (filtered.length === 0) {
+        emptyFavsMsg.hidden = false;
+        favActionsRow.hidden = true;
         return;
     }
-    
-    // Convert string to array
-    savedFavorites = JSON.parse(storageString);
-    
-    // Clear old HTML
-    favGrid.innerHTML = "";
-    
-    // Simple For Loop to draw each station
-    for (var i = 0; i < savedFavorites.length; i++) {
-        var station = savedFavorites[i];
-        
-        var title = "Unnamed Station";
-        if (station.AddressInfo != null && station.AddressInfo.Title != null) {
-            title = station.AddressInfo.Title;
-        }
 
-        var address = "No Address";
-        if (station.AddressInfo != null && station.AddressInfo.AddressLine1 != null) {
-            address = station.AddressInfo.AddressLine1;
-        }
+    emptyFavsMsg.hidden = true;
+    favActionsRow.hidden = false;
+
+    // Draw filtered list
+    for (var i = 0; i < filtered.length; i++) {
+        var station = filtered[i];
+        var title = (station.AddressInfo && station.AddressInfo.Title) ? station.AddressInfo.Title : "Unnamed Station";
+        var address = (station.AddressInfo && station.AddressInfo.AddressLine1) ? station.AddressInfo.AddressLine1 : "No Address";
         
         var isFast = false;
-        if (station.Connections != null) {
-            for (var j = 0; j < station.Connections.length; j++) {
-                if (station.Connections[j].PowerKW >= 20) {
-                    isFast = true;
-                }
+        if (station.Connections) {
+            for (var c = 0; c < station.Connections.length; c++) {
+                if (station.Connections[c].PowerKW >= 20) isFast = true;
             }
         }
-        
-        // Build card HTML using string addition
+
         var html = "";
         html += "<div class='charging-station-card'>";
-        html += "  <div class='station-name'>" + title + "</div>";
-        html += "  <div class='station-address'>" + address + "</div>";
-        
-        if (isFast == true) {
+        html += "  <div class='station-name'>" + escapeHtml(title) + "</div>";
+        html += "  <div class='station-address'>" + escapeHtml(address) + "</div>";
+
+        if (isFast) {
             html += "  <span class='badge badge-fast'>Fast Charger ⚡</span>";
         } else {
             html += "  <span class='badge'>Standard Charger 🔌</span>";
         }
 
-        var lat = 0;
-        var lon = 0;
-        if (station.AddressInfo != null) {
-            if (station.AddressInfo.Latitude != null) lat = station.AddressInfo.Latitude;
-            if (station.AddressInfo.Longitude != null) lon = station.AddressInfo.Longitude;
+        // Render Connections
+        if (station.Connections && station.Connections.length > 0) {
+            html += "  <div class='station-connectors'>";
+            html += "    <strong>Connectors:</strong>";
+            html += "    <ul>";
+            for (var c = 0; c < station.Connections.length; c++) {
+                var conn = station.Connections[c];
+                var typeTitle = conn.ConnectionType ? conn.ConnectionType.Title : "Unknown Type";
+                var power = conn.PowerKW ? conn.PowerKW + " kW" : "Unknown Power";
+                var qty = conn.Quantity ? " (x" + conn.Quantity + ")" : "";
+                html += "      <li>" + escapeHtml(typeTitle) + " - " + escapeHtml(power) + escapeHtml(qty) + "</li>";
+            }
+            html += "    </ul>";
+            html += "  </div>";
         }
+
+        var lat = station.AddressInfo ? (station.AddressInfo.Latitude || 0) : 0;
+        var lon = station.AddressInfo ? (station.AddressInfo.Longitude || 0) : 0;
         var mapsLink = "https://www.google.com/maps/dir/?api=1&destination=" + lat + "," + lon;
 
         html += "  <div class='card-footer'>";
-        html += "    <button onclick='removeFavorite(" + i + ")' class='card-btn danger-btn'>🗑️ Remove</button>";
+        html += "    <button onclick='removeFavorite(\"" + station.ID + "\")' class='card-btn' style='color:#ef4444; border-color:rgba(239,68,68,0.2)'>🗑️ Remove</button>";
         html += "    <a href='" + mapsLink + "' target='_blank' class='card-btn primary-btn'>🗺️ Directions</a>";
         html += "  </div>";
         html += "</div>";
 
-        // Add to grid
         favGrid.innerHTML += html;
     }
 }
 
-// Function to remove a favorite
-function removeFavorite(index) {
-    // Array Splice function removes 1 element at the specified index
-    savedFavorites.splice(index, 1);
-    
-    // Save updated array back to local storage
+// Remove Favorite by ID
+function removeFavorite(id) {
+    savedFavorites = savedFavorites.filter(function(station) {
+        return station.ID.toString() !== id.toString();
+    });
+
     localStorage.setItem("my_simple_favorites", JSON.stringify(savedFavorites));
+    if (favTabCount) favTabCount.innerText = savedFavorites.length;
     
-    // Reload screen
-    if(savedFavorites.length == 0) {
-        favGrid.innerHTML = "";
-        emptyMsg.hidden = false;
-    } else {
-        loadFavorites(); 
-    }
+    showToast("Removed from favorites.");
+    renderFavorites();
 }
+window.removeFavorite = removeFavorite;
 
-// Run this function when the page loads
-if (favGrid != null) {
-    loadFavorites();
-}
-
-// Simple Theme Toggle
-var themeBtn = document.getElementById("theme-toggle");
-if (themeBtn != null) {
-    themeBtn.addEventListener("click", function() {
-        var htmlTag = document.documentElement;
-        var currentTheme = htmlTag.getAttribute("data-theme");
-        
-        if (currentTheme == "light") {
-            htmlTag.setAttribute("data-theme", "dark");
-        } else {
-            htmlTag.setAttribute("data-theme", "light");
+// Clear All Favorites
+if (clearFavsBtn) {
+    clearFavsBtn.addEventListener("click", function() {
+        if (confirm("Are you sure you want to remove all saved favorites?")) {
+            savedFavorites = [];
+            localStorage.setItem("my_simple_favorites", JSON.stringify(savedFavorites));
+            if (favTabCount) favTabCount.innerText = "0";
+            showToast("Cleared all favorites.");
+            renderFavorites();
         }
     });
 }
 
-// Favorite Sorting logic
-var favSortSelect = document.getElementById("fav-sort-select");
-if (favSortSelect != null) {
+// ─── Search & Filters Listeners ───
+if (favSearchInput) {
+    favSearchInput.addEventListener("input", function() {
+        currentSearchQuery = favSearchInput.value.trim();
+        if (favSearchClear) {
+            favSearchClear.hidden = currentSearchQuery === "";
+        }
+        renderFavorites();
+    });
+}
+
+if (favSearchClear) {
+    favSearchClear.addEventListener("click", function() {
+        favSearchInput.value = "";
+        currentSearchQuery = "";
+        favSearchClear.hidden = true;
+        renderFavorites();
+    });
+}
+
+if (favSortSelect) {
     favSortSelect.addEventListener("change", function() {
-        var sortValue = favSortSelect.value;
-        
-        savedFavorites.sort(function(a, b) {
-            var titleA = "Untitled";
-            if (a.AddressInfo != null && a.AddressInfo.Title != null) { titleA = a.AddressInfo.Title; }
-            
-            var titleB = "Untitled";
-            if (b.AddressInfo != null && b.AddressInfo.Title != null) { titleB = b.AddressInfo.Title; }
-            
-            if (sortValue == "name-asc") {
-                if(titleA < titleB) return -1;
-                if(titleA > titleB) return 1;
-                return 0;
-            } 
-            else if (sortValue == "name-desc") {
-                if(titleA > titleB) return -1;
-                if(titleA < titleB) return 1;
-                return 0;
-            }
-            // newest/oldest requires timestamp which basic Array doesn't have by default unless we added it
-            // but we can just reverse the array or do nothing.
-            
-            return 0;
-        });
-        
-        // Redraw table
-        // We need to re-clear and re-run display loop
-        loadFavoritesFromMemory();
+        currentSortValue = favSortSelect.value;
+        renderFavorites();
     });
 }
 
-function loadFavoritesFromMemory() {
-    favGrid.innerHTML = "";
-    
-    for (var i = 0; i < savedFavorites.length; i++) {
-        var station = savedFavorites[i];
-        
-        var title = "Unnamed Station";
-        if (station.AddressInfo != null && station.AddressInfo.Title != null) {
-            title = station.AddressInfo.Title;
+// Wire Up Filter Button Clicks in Favorites
+var filterButtons = document.querySelectorAll(".fav-filter-row .filter-button");
+for (var i = 0; i < filterButtons.length; i++) {
+    filterButtons[i].addEventListener("click", function() {
+        for (var j = 0; j < filterButtons.length; j++) {
+            filterButtons[j].classList.remove("active");
         }
+        this.classList.add("active");
+        
+        var filterId = this.getAttribute("id");
+        if (filterId === "fav-filter-fast") {
+            currentFilterType = "fast";
+        } else if (filterId === "fav-filter-free") {
+            currentFilterType = "free";
+        } else {
+            currentFilterType = "all";
+        }
+        
+        renderFavorites();
+    });
+}
 
-        var address = "No Address";
-        if (station.AddressInfo != null && station.AddressInfo.AddressLine1 != null) {
-            address = station.AddressInfo.AddressLine1;
-        }
-        
-        var isFast = false;
-        if (station.Connections != null) {
-            for (var j = 0; j < station.Connections.length; j++) {
-                if (station.Connections[j].PowerKW >= 20) {
-                    isFast = true;
-                }
-            }
-        }
+// ─── Render Search History ───
+function renderHistory() {
+    if (!historyList) return;
+    historyList.innerHTML = "";
+
+    if (searchHistory.length === 0) {
+        emptyHistoryMsg.hidden = false;
+        historyActionsRow.hidden = true;
+        return;
+    }
+
+    emptyHistoryMsg.hidden = true;
+    historyActionsRow.hidden = false;
+
+    for (var i = 0; i < searchHistory.length; i++) {
+        var item = searchHistory[i];
+        var timeString = formatRelativeTime(item.timestamp);
         
         var html = "";
-        html += "<div class='charging-station-card'>";
-        html += "  <div class='station-name'>" + title + "</div>";
-        html += "  <div class='station-address'>" + address + "</div>";
-        
-        if (isFast == true) {
-            html += "  <span class='badge badge-fast'>Fast Charger ⚡</span>";
-        } else {
-            html += "  <span class='badge'>Standard Charger 🔌</span>";
-        }
-
-        var lat = 0;
-        var lon = 0;
-        if (station.AddressInfo != null) {
-            if (station.AddressInfo.Latitude != null) lat = station.AddressInfo.Latitude;
-            if (station.AddressInfo.Longitude != null) lon = station.AddressInfo.Longitude;
-        }
-        var mapsLink = "https://www.google.com/maps/dir/?api=1&destination=" + lat + "," + lon;
-
-        html += "  <div class='card-footer'>";
-        html += "    <button onclick='removeFavorite(" + i + ")' class='card-btn danger-btn'>🗑️ Remove</button>";
-        html += "    <a href='" + mapsLink + "' target='_blank' class='card-btn primary-btn'>🗺️ Directions</a>";
+        // Set CSS delay variable for list staggered animation
+        html += "<div class='history-item' style='--delay: " + (i * 0.05) + "s' onclick='goToSearch(\"" + encodeURIComponent(item.city) + "\")'>";
+        html += "  <div class='history-item-icon'>📍</div>";
+        html += "  <div class='history-item-details'>";
+        html += "    <div class='history-item-city'>" + escapeHtml(item.city) + "</div>";
+        html += "    <div class='history-item-time'>" + timeString + "</div>";
         html += "  </div>";
+        html += "  <div class='history-item-arrow'>→</div>";
+        html += "  <button class='history-item-delete' onclick='event.stopPropagation(); deleteHistoryItem(" + i + ")' aria-label='Delete history item'>🗑️</button>";
         html += "</div>";
 
-        favGrid.innerHTML += html;
+        historyList.innerHTML += html;
     }
 }
+
+// Redirect to dashboard with city search param
+function goToSearch(city) {
+    window.location.href = "index.html?city=" + city;
+}
+window.goToSearch = goToSearch;
+
+// Delete single history item
+function deleteHistoryItem(index) {
+    searchHistory.splice(index, 1);
+    localStorage.setItem("volt_search_history", JSON.stringify(searchHistory));
+    if (historyTabCount) historyTabCount.innerText = searchHistory.length;
+    showToast("Removed search from history.");
+    renderHistory();
+}
+window.deleteHistoryItem = deleteHistoryItem;
+
+// Clear all history
+if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener("click", function() {
+        if (confirm("Are you sure you want to clear your search history?")) {
+            searchHistory = [];
+            localStorage.setItem("volt_search_history", JSON.stringify(searchHistory));
+            if (historyTabCount) historyTabCount.innerText = "0";
+            showToast("Cleared search history.");
+            renderHistory();
+        }
+    });
+}
+
+// ─── Initialization on load ───
+window.addEventListener("DOMContentLoaded", function() {
+    initTheme();
+    initTabs();
+    loadData();
+    
+    // Initial render based on active view (Favorites is default)
+    renderFavorites();
+});
