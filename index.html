@@ -3,91 +3,234 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VoltNavigator Station Finder</title>
+  <title>VoltNavigator — EV Infrastructure Network</title>
+  <meta name="description" content="Premium EV charging station finder with real-time network data, sustainability metrics, and interactive map — VoltNavigator." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
   <link rel="stylesheet" href="index.css" />
+
+  <!-- Leaflet core -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- MarkerCluster -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 </head>
 <body>
-  <header>
-    <h1>VoltNavigator</h1>
-    <nav>
-      <a href="index.html">Find Stations</a> |
-      <a href="favorites.html">Favorites</a> |
-      <button id="theme-toggle">Theme: <span id="theme-icon">☀️</span></button>
-    </nav>
-    <hr>
-  </header>
+  <div class="app-container">
 
-  <main id="main">
-    <section>
-      <h2>Find a Charger</h2>
-      <p>Enter your city to search for EV charging stations.</p>
-      
-      <div>
-        <input type="text" id="city-search-input" placeholder="City name" />
-        <button id="search-button">Search</button>
+    <!-- ═══════════════════════════════════════════
+         LEFT: Full-bleed Map Panel (65%)
+    ═══════════════════════════════════════════ -->
+    <div class="map-panel">
+      <!-- Leaflet Map -->
+      <div id="map"></div>
+
+      <!-- Cinematic image placeholder shown when no stations are available -->
+      <div id="map-placeholder" class="map-placeholder hidden"></div>
+
+      <!-- Cinematic gradient overlay — bottom-left dark pool -->
+      <div class="map-overlay"></div>
+
+      <!-- Top-left network label -->
+      <div class="top-left-label">
+        <span class="label-pip"></span>
+        EV Infrastructure Network
       </div>
 
-      <br>
+      <!-- Bottom-left hero content -->
+      <div class="hero-content">
+        <h1 class="hero-headline">
+          <span class="hero-line hero-line--1">
+            <span class="hero-charge">Charge</span><span class="hero-smarter"> Smarter,</span>
+          </span>
+          <span class="hero-line hero-line--2">
+            <span class="hero-drive">Drive</span> <span class="hero-greener">Greener</span>
+          </span>
+        </h1>
 
-      <div id="keyword-search-bar" hidden>
-        <input type="text" id="keyword-search-input" placeholder="Search by name, address..." />
-        <button id="keyword-clear-button" hidden>Clear</button>
+        <div class="hero-pills">
+          <button id="hero-find-btn" class="pill-btn pill-find" onclick="document.getElementById('city-search-input').focus()">
+            <span class="pill-lightning">⚡</span> Find Stations
+          </button>
+        </div>
       </div>
-    </section>
 
-    <div id="results-summary" hidden style="margin-top: 15px;">
-      Total: <span id="summary-total-count">0</span> |
-      Fast: <span id="summary-fast-count">0</span> |
-      Free: <span id="summary-free-count">0</span> |
-      City: <span id="summary-city-name"></span>
-    </div>
+      <!-- Theme toggle -->
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+        <span id="theme-icon">☀️</span>
+      </button>
+    </div><!-- /map-panel -->
 
-    <section id="filter-sort-row" hidden style="margin-top: 15px;">
-      <div>
-        <b>Filter:</b>
-        <button class="filter-button active" data-filter="all">All</button>
-        <button class="filter-button" data-filter="fast">Fast</button>
-        <button class="filter-button" data-filter="free">Free</button>
-        <button class="filter-button" data-filter="favorited">Favorites</button>
+    <!-- ═══════════════════════════════════════════
+         RIGHT: Dashboard Panel (35%)
+    ═══════════════════════════════════════════ -->
+    <div class="right-panel">
+
+      <!-- ── Card 1: Search ── -->
+      <div class="card glass-card search-card">
+        <div class="search-inner">
+          <span class="leaf-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00b359" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 22c0 0 4-10 12-12S22 2 22 2s-4 10-12 12S2 22 2 22z"/>
+            </svg>
+          </span>
+          <input type="text" id="city-search-input" placeholder="Enter a city (e.g., Los Angeles, London)..." autocomplete="off" />
+          <button id="locate-button" class="hamburger-btn" aria-label="Use current location" onclick="useCurrentLocation()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="12" r="3"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+            </svg>
+          </button>
+          <button id="search-button" class="hamburger-btn" aria-label="Search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+        </div>
       </div>
-      <div style="margin-top: 10px;">
-        <b>Sort:</b>
-        <select id="sort-select">
-          <option value="default">Default</option>
-          <option value="name-asc">Name A-Z</option>
-          <option value="name-desc">Name Z-A</option>
-          <option value="power-desc">Power High-Low</option>
-          <option value="power-asc">Power Low-High</option>
-          <option value="points-desc">Points High-Low</option>
-          <option value="points-asc">Points Low-High</option>
-        </select>
+
+      <!-- ── Card: Driving Directions ── -->
+      <div id="directions-card" class="card glass-card directions-card" hidden>
+        <div class="card-header">
+          <h3>Directions <span class="live-indicator"><span class="live-dot" style="background:#00b359"></span>Route</span></h3>
+        </div>
+        <div class="card-body">
+          <div class="route-summary">
+            <div class="route-summary-item">
+              <span class="route-summary-label" style="font-size: 0.74rem; font-weight: 500; opacity: 0.5;">Nearest Station</span>
+              <div id="route-dest-name" class="route-summary-value" style="font-size: 0.95rem; font-weight: 700; margin-top: 2px;">—</div>
+            </div>
+            <div class="route-summary-row" style="display: flex; gap: 16px; margin-top: 10px;">
+              <div class="route-summary-item" style="flex: 1;">
+                <span class="route-summary-label" style="font-size: 0.74rem; font-weight: 500; opacity: 0.5;">Distance</span>
+                <div id="route-distance" class="route-summary-value" style="font-size: 1.1rem; font-weight: 700; color: var(--primary-green);">—</div>
+              </div>
+              <div class="route-summary-item" style="flex: 1;">
+                <span class="route-summary-label" style="font-size: 0.74rem; font-weight: 500; opacity: 0.5;">Duration</span>
+                <div id="route-duration" class="route-summary-value" style="font-size: 1.1rem; font-weight: 700; color: var(--primary-green);">—</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="directions-steps-container" style="margin-top: 16px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 12px;">
+            <span class="directions-steps-title" style="font-weight: 700; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.45;">Turn-by-turn Navigation:</span>
+            <ol id="directions-steps" class="directions-steps-list" style="margin: 8px 0 0 0; padding: 0 0 0 16px; max-height: 150px; overflow-y: auto; font-size: 0.80rem; line-height: 1.45;">
+              <!-- Loaded dynamically -->
+            </ol>
+          </div>
+          
+          <div class="directions-footer" style="margin-top: 16px; display: flex; gap: 8px;">
+            <a id="google-maps-directions-btn" href="#" target="_blank" class="card-btn primary-btn" style="flex: 1; text-align: center; text-decoration: none;">🗺️ Google Maps</a>
+            <button onclick="clearActiveRoute()" class="card-btn" style="flex: 1; color: #ef4444; border-color: rgba(239,68,68,0.2);">Clear Route</button>
+          </div>
+        </div>
       </div>
-    </section>
 
-    <div id="loading-cards" hidden style="margin-top: 20px;">
-      <p>Loading data... please wait.</p>
-    </div>
+      <!-- ── Card 2: Welcome / Onboarding Card ── -->
+      <div id="welcome-card" class="card glass-card welcome-card">
+        <div class="card-header">
+          <h3>Where to next?</h3>
+        </div>
+        <div class="card-body">
+          <p class="welcome-text">VoltNavigator is your companion for EV travels. Search for a city to discover local charging stations, filter by power range or connectors, and map your route.</p>
+          <div class="quick-start-section">
+            <span class="quick-start-title">Quick Search:</span>
+            <div class="quick-cities">
+              <button class="quick-city-btn" onclick="quickSearch('Los Angeles')">Los Angeles</button>
+              <button class="quick-city-btn" onclick="quickSearch('London')">London</button>
+              <button class="quick-city-btn" onclick="quickSearch('Munich')">Munich</button>
+              <button class="quick-city-btn" onclick="quickSearch('Tokyo')">Tokyo</button>
+              <button class="quick-city-btn" onclick="quickSearch('New Delhi')">New Delhi</button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <div id="error-message" hidden style="color: red; margin-top: 20px;">
-      <h2>Error!</h2>
-      <p id="error-description">There was an error loading the stations.</p>
-      <button id="try-again-button">Retry</button>
-    </div>
+      <!-- ════ PRESERVED FUNCTIONAL ELEMENTS ════ -->
 
-    <div id="no-results-message" hidden style="margin-top: 20px;">
-      <h2>No stations found.</h2>
-      <p>Please try a different city or filter.</p>
-    </div>
+      <div id="results-summary" hidden class="results-summary">
+        Total: <span id="summary-total-count">0</span> |
+        Fast: <span id="summary-fast-count">0</span> |
+        Free: <span id="summary-free-count">0</span> |
+        City: <span id="summary-city-name"></span>
+      </div>
 
-    <section id="station-results" class="results-grid"></section>
+      <section id="filter-sort-row" hidden class="filter-sort-row">
+        <div class="filter-group">
+          <b>Filter:</b>
+          <button class="filter-button active" data-filter="all">All</button>
+          <button class="filter-button" data-filter="fast">Fast</button>
+          <button class="filter-button" data-filter="free">Free</button>
+          <button class="filter-button" data-filter="favorited">Favorites</button>
+        </div>
+        <div class="filter-controls">
+          <div class="control-group">
+            <b>Connector:</b>
+            <select id="connector-type-select">
+              <option value="all">All Connectors</option>
+            </select>
+          </div>
+          <div class="control-group power-group">
+            <b>Min Power:</b>
+            <input type="range" id="power-slider" min="0" max="150" value="0" step="10" />
+            <span id="power-value" class="power-value">0</span> kW
+          </div>
+          <div class="control-group">
+            <b>Sort:</b>
+            <select id="sort-select">
+              <option value="default">Default</option>
+              <option value="name-asc">Name A-Z</option>
+              <option value="name-desc">Name Z-A</option>
+              <option value="power-desc">Power High-Low</option>
+              <option value="power-asc">Power Low-High</option>
+              <option value="points-desc">Points High-Low</option>
+              <option value="points-asc">Points Low-High</option>
+            </select>
+          </div>
+        </div>
+      </section>
 
-    <div id="load-more-section" hidden style="margin-top: 20px;">
-      <button id="load-more-button">Load More Stations</button>
-    </div>
-  </main>
+      <div id="loading-cards" hidden class="status-msg">
+        <p>Loading data… please wait.</p>
+      </div>
 
+      <div id="error-message" hidden class="status-msg error-msg">
+        <h3>Error!</h3>
+        <p id="error-description">There was an error loading the stations.</p>
+        <button id="try-again-button" class="retry-btn">Retry</button>
+      </div>
 
+      <div id="no-results-message" hidden class="status-msg">
+        <h3>No stations found.</h3>
+        <p>Please try a different city or filter.</p>
+      </div>
 
+      <section id="station-results" class="results-grid"></section>
+
+      <div id="load-more-section" hidden class="load-more-section">
+        <button id="load-more-button">Load More Stations</button>
+      </div>
+
+      <div class="right-footer">
+        <a href="favorites.html" class="footer-link">Saved Stations →</a>
+      </div>
+    </div><!-- /right-panel -->
+  </div><!-- /app-container -->
+
+  <!-- Toast notification -->
   <div id="notification-toast" class="toast"></div>
 
   <script src="index.js"></script>
